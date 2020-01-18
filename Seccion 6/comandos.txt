@@ -1,0 +1,103 @@
+65
+-----------------------------------------------------
+Tipos de redes
+ Bridge
+ Host
+ None
+ Overlay
+
+
+ 66
+ ------------------------------------------------------
+ Para listar la red de docker
+ ip a | grep docker
+
+ Mirar las red por defecto de docker
+ docker network ls
+
+por defecto la red es Bridge
+docker network ls | grep bridge
+
+para inspeccionar la red
+docker network inspect bridge
+
+para inspeccionar el volumen y la red
+docker inspect NOMBRE_VOLUMEN  |grep bridge -C 10
+
+para ver las redes de los volumenes
+docker inspect network bridge
+
+hacer el ping entre volumenes
+docker exec NOMBRE bash -c "ping IP_OTRO_VOLUMEN"
+
+67
+------------------------------------------------------
+crear una red en docker
+docker network create NOMBRE
+
+ver la red
+docker network ls |grep NOMBRE
+
+crear una subred con driver bridge
+docker network create -d bridge --subnet 172.19.0.0/16 --gateway 172.19.0.1 docker-subnet
+
+
+68
+------------------------------------------------------
+inspeccionar la red
+docker network inspect NOMBRE_RED | less
+
+69
+------------------------------------------------------
+crear un volumen en una red distinta que la de docker
+
+docker run --network NOMBRE_DE_RED -d --name NOMBRE -ti centos
+
+70
+------------------------------------------------------
+conectar los contenedores de la misma red
+docker run -d --network docker-subnet --name cont1 -ti centos
+docker run -d --network docker-subnet --name cont2 -ti centos
+
+
+comprobar conectividad entre los dockers
+docker exec cont1 bash -c "ping 172.19.0.3"
+docker exec cont2 bash -c "ping 172.19.0.2"
+
+solo cuando se hayan creado la red por nosotros
+docker exec cont1 bash -c "ping cont2"
+
+docker run -d --network network-test --name cont4 -ti centos
+
+
+71
+------------------------------------------------------
+conectar los contenedores de la distinta redes
+docker network ls | egrep 'docker-test-|network-test'
+
+conectar volumen la red al docker fuera de la red
+docker network connect docker-test cont4
+
+docker network disconnect network-test cont4
+
+72
+------------------------------------------------------
+quitar las redes
+docker network rm NOMBRE
+docker network rm network-test
+
+
+73
+------------------------------------------------------
+docker network create --subnet 172.128.10.0/24 --gateway 172.128.10.1 -d bridge my-net
+
+crear el docker asignando a una red
+docker run --network my-net -d --name nginx1 -ti centos
+
+docker run --network my-net --ip 172.128.10.50 -d --name nginx2 -ti centos
+
+
+74
+------------------------------------------------------
+añadir a la red de host (ya existe por defecto la red de host )
+docker run --network host -d --name test2 -ti centos

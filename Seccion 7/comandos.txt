@@ -1,0 +1,418 @@
+Docker compose
+Permite crear aplicaciones multicontenedor
+Contenedores
+Imagenes
+Volumenes
+Redes
+
+
+Un workpress necesita mysql y un web server para ellos lo que sabemos tendríamos que crear cada uno de ellos y inter-conectarlos a través de la red
+
+
+79
+-----------------------------------------------------------------
+Instalar docker compose
+sudo curl -L "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+
+escribir el siguiente comando para comrobarlo
+docker-compose
+
+80
+-----------------------------------------------------------------
+docker-compose.yml
+version: '3'
+services:
+  web:
+    container_name: nginx
+    ports:
+       - "8080:80"
+    image: nginx
+
+
+levantar un docker donde está el fichero docker-compose.yml
+docker-compose up -d
+docker-compose down
+
+
+81
+-----------------------------------------------------------------
+docker-compose.yml
+version: '3'
+services:
+  db:
+    image: mysql:5.7
+    container_name: mysql
+    ports:
+       - "3306:3306"
+    environment:
+       - "MYSQL_ROOT_PASSWORD=12345678"
+
+#docker-compose up -d
+
+con fichero de configuración
+version: '3'
+services:
+  db:
+    image: mysql:5.7
+    container_name: mysql
+    ports:
+       - "3306:3306"
+    env_file: common.env
+echo "MYSQL_ROOT_PASSWORD=12345678" > common.env
+
+#docker-compose up -d
+#docker exec -ti mysql bash
+#env
+
+
+82
+---------------------------------------------------------------------------
+volumenes en compose
+
+docker-compose.yml
+
+version: '3'
+services:
+    web:
+      container_name: nginx
+      ports:
+         - "8080:80"
+      volumes:
+         - "vol2:/usr/share/nginx/html"
+      image: nginx
+volumes:
+   vol2:
+
+#docker-compose up -d
+#docker info | grep -i root
+#cd /var/lib/docker
+#cd _data
+
+
+crear la carpeta html(copiarlo desde tutorial) a donde se mapea el volumen
+
+html
+docker-compose.yml
+
+version: '3'
+services:
+    web:
+      container_name: nginx
+      ports:
+         - "8080:80"
+      volumes:
+         - "/home/docker/docker-compose2/html:/usr/share/nginx/html"
+      image: nginx
+
+#docker-compose up -d
+
+
+83
+---------------------------------------------------------------------------
+redes en compose
+
+docker-compose.yml
+
+version: '3'
+services:
+    web:
+      container_name: nginx
+      ports:
+         - "8080:80"
+      image: nginx
+      networks:
+          - net-test
+networks:
+    net-test:
+
+#docker-compose up -d
+
+#docker inspect nginx
+
+docker-compose.yml
+version: '3'
+services:
+    web:
+      container_name: nginx
+      ports:
+         - "8080:80"
+      image: httpd
+      networks:
+          - net-test
+    web2:
+      container_name: nginx3
+      ports:
+         - "8081:80"
+      image: httpd
+      networks:
+          - net-test
+networks:
+    net-test:
+
+#docker-compose up -d
+#docker exec -ti nginx3 bash -c "ping nginx"
+no funciona
+
+
+84
+---------------------------------------------------------------------------
+
+crear carpeta build
+
+build
+Dockerfile
+
+FROM centos
+RUN  /opt/test
+
+
+
+docker-compose.yml
+
+version: '3'
+services:
+    web:
+      container_name: web
+      image: web-test
+      build: .
+
+#docker-compose build
+#docker images
+
+Dockerfile nombre distinto
+
+Dockerfile
+FROM centos
+RUN  /opt/test
+
+docker-compose.yml
+version: '3'
+services:
+    web:
+      container_name: web
+      image: web-test
+      build:
+         context: .
+         dockerfile: Dockerfile1
+
+
+85
+---------------------------------------------------------------------------
+Dockerfile
+FROM centos
+RUN  /opt/test
+
+
+docker-compose.yml
+version: '3'
+services:
+    web:
+      image: centos
+      command: python -m SimpleHTTPServer 8080
+      ports:
+        - "8080:8080"
+
+no funciona
+
+86
+---------------------------------------------------------------------------
+
+docker-compose.yml
+version: '3'
+services:
+    web:
+      container_name:nginx
+      mem_limit:20m
+      cpuset:"0"
+      image: nginx:latest
+
+#docker-compose -f docker-compose.yml up -d
+
+
+87
+---------------------------------------------------------------------------
+docker restart policy
+
+docker run -dti centos
+docker stop CONTAINER_ID
+
+docker-compose.yml
+version: '3'
+services:
+   test:
+      container_name: test
+      image: restart-image
+      build: .
+      restart:always
+
+vi Dockerfile
+FROM centos
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+CMD  /start.sh
+
+vi start.sh
+#!/bin/bash
+echo "Estoy vivo"
+sleep 5
+echo "Estoy detenido"
+
+docker-compose build
+
+docker-compose up -d
+watch -d docker ps
+
+
+unless-stopped
+
+docker-compose.yml
+version: '3'
+services:
+   test:
+      container_name: test
+      image: restart-image
+      build: .
+      restart: unless-stopped
+
+on-failure (reinicia al fallar)
+
+docker-compose.yml
+version: '3'
+services:
+   test:
+      container_name: test
+      image: restart-image
+      build: .
+      restart: on-failure
+
+
+
+88
+---------------------------------------------------------------------------
+personalizar el nombre de tu proyecto en compose
+
+docker-compose-cmd.yml
+
+version: '3'
+services:
+    web:
+      container_name: web
+      image: centos
+      command: python -m SimpleHTTPServer 8080
+      ports:
+        - "8080:8080"
+
+docker-compose -f docker-compose-cmd.yml up -d
+
+cambiar el refijo  de la red
+docker-compose -f -p webtest docker-compose-cmd.yml up -d
+
+
+89
+---------------------------------------------------------------------------
+
+docker-compose-mysql.yml
+version: '3'
+services:
+   db:
+     image: mysql:5.7
+     container_name: mysql
+     ports:
+       - "3306:3306"
+     env_file: common.env[docker@docker docker-compose]$ docker-compose up -d
+docker-compose -f docker-compose-mysql.yml up -d
+
+
+90
+---------------------------------------------------------------------------
+mostrar la ayuda de docker compose
+
+
+91
+---------------------------------------------------------------------------
+mkdir wordpress
+mkdir wordpress/apps
+
+version: '3'
+services:
+  db:
+    container_name: wp-mysql
+    image: mysql:5.7
+    volumes:
+      - $PWD/data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345678
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+    ports:
+      - "3306:3306"
+    networks:
+      - my_net
+
+  wp:
+    container_name: wp-web
+    volumes:
+      - "$PWD/html:/var/www/html"
+    depends_on:
+      -db
+    image: wordpress:latest
+    ports:
+     - "80:80"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+    networks:
+      - my_net
+
+networks:
+    my_net:
+
+
+docker-compose up -d
+
+docker-compose down
+
+    92
+---------------------------------------------------------------------------
+docker-compose.yml
+
+version: '3'
+services:
+  drupal:
+    volumes:
+      - drupal:/var/www/html
+    image: drupal:8-apache
+    ports:
+      - 80:80
+    networks:
+      - net
+  postgres:
+    image: postgres:10
+    environment:
+      POSTGRES_PASSWORD: example
+    volumes:
+      - $PWD/data:/var/lib/postgresql/data
+    networks:
+      - net
+volumes:
+  drupal:
+networks:
+  net:
+
+docker-compose up -d
+
+a la hora de instalarlo
+nombre de servidor: postgres
+
+
+93 , 94 , 95 , 96 ,97, 98
+---------------------------------------------------------------------------
+93: PrestaShop
+94: Joomla
+95: Reaction ECommerce - NodeJS + MongoDB
+96: Guacamole
+97: Ssh en docker + Guacamole
+98: Zabbix con compose

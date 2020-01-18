@@ -1,0 +1,138 @@
+¿Qué son volumenes?
+Los volumenes permiten almacenar datos persistente del contenedor. Hay varios
+Host : Que se almacenen dentro de nuestro file system que nosotros definimos
+Anonymous: No lo definimos nosotros la carpeta sino docker automaticamente crea la carpeta para guardarlo.
+Named Volumes: Nosotros lo creamos pero las carpetas son de docker.
+
+
+54
+----------------------------------------------------------
+Crear una imagen de una base de datos
+docker run -d -p 3306:3306 --name my-db -e "MYSQL_ROOT_PASSWORD=1234" -e "MYSQL_DATABASE=docker-db" -e "MYSQL_USER=docker-user" -e "MYSQL_PASSWORD=9876" mysql:5.7
+
+docker exec -it my-db mysql -u root -p -h 192.168.190.130
+
+docker exec -it my-db mysqldump -u root -p -h 192.168.190.130 -p1234 mysql > dump.sql
+
+NO FUNCIONA
+docker exec -it my-db mysql -u root -h 192.168.190.130 -p docker-db < dump.sql
+
+
+55
+----------------------------------------------------------
+crear un volumen, todos los ficheros de contenedor /var/lib/mysql se copiarán a /opt/mysql
+docker run -d --name my-db -p 3306:3306 -e "MYSQL_ROOT_PASSWORD=1234" -v /opt/mysql/:/var/lib/mysql mysql:5.7
+
+entra al contenedor
+docker exec -it my-db mysql -u root -p -h 192.168.190.130
+
+borrar el contenedor y crear otra vez apuntando al mismo el volumen y comprobar si siguen existiendo los datos
+docker rm -fv my-db
+docker run -d --name my-db -p 3306:3306 -e "MYSQL_ROOT_PASSWORD=1234" -v /opt/mysql/:/var/lib/mysql mysql:5.7
+
+
+56
+----------------------------------------------------------
+volumnes anónimo (no es aconsejable porque acceder es dificil )
+crear un volumen, todos los ficheros de contenedor /var/lib/mysql se copiarán a /opt/mysql
+docker run -d --name my-db -p 3306:3306 -e "MYSQL_ROOT_PASSWORD=1234" -v /opt/mysql/ mysql:5.7
+
+encontrar el document root
+docker info | grep -i root
+/var/lib/docker
+
+entra al volumen y ver el volumen
+ cd /var/lib/docker/volumes/
+
+ 57
+ ----------------------------------------------------------
+ Crear un dockerfile
+
+hacer el build de dockerfile
+docker build -t test-vol -f Dockerfile .
+
+ejecutar el contenedor
+docker run -dti --name test test-vol
+
+borrar el volume sin borrar el contenido
+docker rm -f NOMBRE_VOLUMEN
+
+borrar el volumen todo
+docker rm -fv NOMBRE_VOLUMEN
+
+ Para ver todos los volumen creados
+ docker volume ls
+
+
+ 58
+ -------------------------------------------------------------------
+ crear un volumen nombrado
+docker volume create mysql-data
+
+docker volumn ls
+mysql-data
+
+eliminar el volumen
+docker volume rm mysql-data
+
+crear un nuevo volumen
+docker volume create my-vol
+
+mapear el contenedor a un volumen
+docker run -d --name mysql  -v my-vol:/var/lib/mysql -p 3306:3306 -e "MYSQL_ROOT_PASSWORD=1234" -e "MYSQL_DATABASE=docker-db" mysql:5.7
+
+
+si borramos el contenedor los datos siguen persistiendo dentro del volumen y al crear lo otra vez se usarán de ahí
+
+
+58
+-------------------------------------------------------------------
+crear volumen anonimo
+docker run -d --name mysql  -v /var/lib/mysql -p 3306:3306 -e "MYSQL_ROOT_PASSWORD=1234" -e "MYSQL_DATABASE=docker-db" mysql:5.7
+
+docker run -d --name mysql  -v /var/lib/mysql1 -p 3307:3306 -e "MYSQL_ROOT_PASSWORD=1234" -e "MYSQL_DATABASE=docker-db" mysql:5.7
+
+docker run -d --name mysql  -v /var/lib/mysql2 -p 3308:3306 -e "MYSQL_ROOT_PASSWORD=1234" -e "MYSQL_DATABASE=docker-db" mysql:5.7
+
+
+al borrar lo los volumenes siguen existiendo
+docker rm -f mysql mysql1 mysql2
+
+
+para compobarlo vamos a la carpeta
+docker info | grep -i root
+
+para listar los volumenes dangling
+docker volume ls -f dangling=true
+
+como eliminar los volumenes dangling
+docker volume ls -f dangling=true -q |xargs docker volume rm
+
+
+61
+-------------------------------------------------------------------
+
+Como entrar a un archivo de docker sin entrar en el docker
+docker exec NOMBRE_VOLUMEN bash -c "comando la_ruta"
+
+
+63
+-------------------------------------------------------------------
+Compartir dos volumenes
+
+uno genera un fichero y el otro lo usa
+
+vi start.sh
+#!/bin/bash
+
+while true; do
+  echo  "<p> $(date +%H:%M:%S)  </p>"  >> /opt/index.html
+   sleep 10
+done
+
+
+
+docker build -t datetime .
+docker run -v $PWD/common:/opt/ -d --name datetime datetimer
+
+docker run -d --name nginx -v $PWD/common:/usr/share/nginx/html nginx:alpine

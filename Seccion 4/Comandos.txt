@@ -1,0 +1,179 @@
+para listar todos los contenedores
+docker ps -a
+
+correr el contenedor en segundo plano
+docker run -d la_imagen
+
+correr el contener en segundo plano y especificando un puerto
+ --puerto de nuestra máquina:puerto del contenedor
+docker run -d -p 8080:8080 la_imagen
+
+borrar un contenedor con force
+docker rm -f ID_CONTENEDOR ID_CONTENEDOR
+
+renombrar un contenedor
+-NOMBRE_ANTIGUO dado por docker
+docker rename NOMBRE_ANTIGUO NOMBRE_NUEVO
+
+parar un contenedor
+docker stop ID_CONTENEDOR o NOMBRE_CONTENDOR
+
+ver los contenedores parados
+docker ps -a
+
+iniciar un contenedor
+docker start ID_CONTENEDOR o NOMBRE_CONTENDOR
+
+reiniciar un contenedor
+docker restart ID_CONTENEDOR o NOMBRE_CONTENDOR
+
+entrar en un contenedor
+docker exec -ti ID_CONTENEDOR o NOMBRE_CONTENDOR bash
+
+el usuario dentro del terminal
+docker@ubuntu:~/docker-images/35$ docker exec -ti jenkins bash
+
+NOMBRE_USUARIO@ID_CONTENEDOR
+jenkins@24079e393e54:/$
+
+cambiar el nombre y hostname
+
+entrar como usuario root
+docker exec -u root -ti ID_CONTENEDOR o NOMBRE_CONTENDOR bash
+
+
+variables de entornos
+--------------------------------------------------------------------------------
+ver los ids de los contenedores
+docker ps -a
+
+borrar todos los contenedores
+docker ps -q | xargs docker rm -f
+
+para crear una imagen desde un sistema operativo usamos la opción -dti y con un nombre --name
+docker run -dti --name NOMBRE NOMRBE_IMAGEN
+
+ejecutar un contenedor con una variable de entorno
+docker run -dti -e "prueba1=342" --name NOMBRE NOMBRE_IMAGEN
+
+
+inspeccionar un contenedor docker
+docker inspect NOMBRE_IMAGEN o ID_CONTENEDOR
+
+
+conectar a mysql
+docker exec -it my-db  mysql -u root -h 172.17.0.3 -p12345
+
+
+conectar a mysql con varias varaibles de entornos que están disponible en la página oficial de mysql
+docker run -d -p 3333:3306 --name my-db2 -e "MYSQL_ROOT_PASSWORD=12345" -e "MYSQL_DATABASE=docker" -e "MYSQL_USER=docker" -e "MYSQL_PASSWORD=9876" mysql:5.7
+
+docker exec -it my-db2 mysql -u root -p12345 -h 192.168.190.130 --port 3333
+
+
+para eliminar todos los contenedores
+docker rm -fv $(docker ps -aq)
+
+consumo de contenedor de docker
+docker stats NOMBRE_CONTENDOR o ID_CONTENEDOR
+
+
+crear una imagen de mongo
+docker run --name docker-mongo -d -p 27017:27017 mongo
+docker logs -f docker-mongo
+
+
+entrar dentro del docker
+docker exec -ti NOMBRE_CONTENEDOR bash
+
+45
+----------------------------------------------
+docker run -d -ti --name prueba centos:prueba
+
+
+docker exec -u NOMBRE_USUARIO -ti NOMBRE_IMAGEN bash
+
+
+46
+---------------------------------------------------
+asignar la memoria ram a contenedor
+docker run -d -m "CAPACIDAD_MEMORIA" --name NOMBRE NOMBRE_IMAGEN
+
+¿cuantas CPU tenemos en nuestra máquina en linux?
+grep "model name" /proc/cpuinfo
+
+grep "model name" /proc/cpuinfo | wc -l
+
+asigar el CPU al contenedor
+docker run -d -m "500mb" --cpuset-cpus --name NOMBRE_IMAGEN IMAGEN
+
+
+47
+---------------------------------------------------
+copiar un fichero a docker
+docker cp NOMBRE_ARCHIVO NOMBRE_CONTENEDOR:/carpeta
+
+
+ copiar los ficheros del contenedor a la máquina
+docker cp NOMBRE_CONTENDOR:/carpeta/ficher .
+docker cp apache:/var/log/dpkg.log .
+
+
+48
+---------------------------------------------------
+Docker commit
+Para crear una imagen del contenedor en un momento dado
+
+docker commit NOMBRE_IMGEN NOMBRE_NUEVO
+
+los archivos creados dentro de
+VOLUME /opt/volumen cuando se hace el build no se guardan los cambios dentro de esa carpeta
+
+
+
+49
+---------------------------------------------------
+sobreescribir la consola del sistema operativo
+docker run -d -p 8080:8080 centos python -m SimpleHTTPServer 8080
+
+
+50
+---------------------------------------------------
+docker run -dti --name NOMBRE_CONTENEDOR NOMBRE_IMAGEN
+docker run -dti --name centos centos
+
+crea la imagen y entra al contenedor y en cuanto se sale el contenedor de destruye
+docker run --rm -ti --name centos centos bash
+
+51
+---------------------------------------------------
+cambiar el document root
+
+Al ejecutar el siguiente comando nos devuelve la ruta de Docker root
+docker info | grep -i root
+cd /var/lib/docker
+sudo su
+ls -l
+
+entramos a este fichero y editamos
+vi /lib/systemd/system/docker.service
+
+ExecStart=/usr/bin/dockerd --data-root /opt/
+
+reiniciamos
+systemctl daemon-reload
+
+reiniciamos el servicio de docker
+systemctl restart docker
+
+aparte de cambiar el ficher root de docker también copiar las imagenes
+
+sudo systemctl stop docker
+rm -rf /opt/*
+
+cd /var/lib/docker
+
+lib# mv docker/ /opt
+
+último contenedor creado
+docker ps -l

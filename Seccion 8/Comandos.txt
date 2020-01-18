@@ -1,0 +1,40 @@
+100 Crear tu propio registry
+------------------------------------------------
+docker run -d -p 5000:5000 --name registry -v $PWD/data:/var/lib/registry registry:2
+
+101 sube tus imagenes
+------------------------------------------------
+docker pull hello-world
+
+docker tag hello-world:latest localhost:5000/hello-world
+
+docker images
+locahost:5000/hello-world   latest                     fce289e99eb9        12 months ago       1.84kB
+
+docker push localhost:5000/hello-world
+
+ls data/docker/registry/v2/repositories/hello-world/
+
+docker rmi hello-world locahost:5000/hello-world locahost:5000/hello
+
+docker pull locahost:5000/hello-world
+
+
+
+102 subir una image usando nuestra IP
+------------------------------------------------
+docker tag hello-world IP/hello-world
+
+autenticación
+vi /lib/systemmd/system/docker.service
+
+buscamos la línea ExecStart=/usr/bin/dockerd --insecure-registry IP:5000
+
+sudo systemctl daemon-reload
+sudo docker stop registry
+sudo systemctl restart docker
+
+
+103 Registry con autenticación
+-----------------------------------------------------------
+https://www.learndevopsnow.tech/docker-registry-con-basic-auth/

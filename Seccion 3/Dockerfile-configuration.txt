@@ -1,0 +1,22 @@
+﻿FROM : especificamos que S.O o una imagen
+
+RUN: instrucción que se van a ejecutar en /bin/bash, cualquier comando linux
+
+COPY/ADD
+
+ENV
+
+WORKDIR
+
+EXPOSE: puerto
+
+LABEL 
+
+USER: que usuario va a ejecutar la tarea
+
+VOLUME
+
+CMD 
+
+.dockerignore
+

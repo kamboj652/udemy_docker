@@ -1,0 +1,35 @@
+﻿crear una imagen con un nombre
+docker build -t apache .
+
+
+para ver la configuración de la imagen
+docker history apache-centos:v1
+
+ejecuta la imagen con un nombre
+docker run -d --name apache apache-centos:v1
+
+ver las imagenes ejecutandose
+docker ps
+
+
+eliminar una imagen
+docker rm -fv apache
+
+al ejecutar la imagen mapear el puerto
+docker run -d --name apache -p 80:80 apache-centos:v1
+
+eliminar una imagen
+docker rmi ID_IMAGEN O NOMRBE
+
+
+dockerfile distinto nombre
+docker build -t test -f my-dockerfile .
+
+buscar las imagenes dangling
+docker images -f dangling=true
+
+buscar las imagenes dangling por lo ids 
+docker images -f dangling=true -q 
+
+buscar las imagenes dangling por lo ids y eliminar todas las imagenes
+docker images -f dangling=true -q |xargs docker rmi

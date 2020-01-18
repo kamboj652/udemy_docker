@@ -1,0 +1,8 @@
+Efimeros
+Un servicio por contenedor
+Build context -> .dockerignore
+Pocas capas
+Multi liea \
+Varias argumentos en una sola capas
+No instalar paquetes innecesarios
+Labels

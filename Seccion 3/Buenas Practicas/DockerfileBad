@@ -1,0 +1,7 @@
+FROM nginx
+
+RUN echo "1" >> /usr/share/nginx/html/test.txt
+
+RUN echo "2" >> /usr/share/nginx/html/test.txt
+
+RUN echo "3" >> /usr/share/nginx/html/test.txt
